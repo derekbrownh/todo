@@ -18,9 +18,12 @@ import DeleteIcon from "@material-ui/icons/Delete";
 
 import InputLabel from "@material-ui/core/InputLabel";
 import MenuItem from "@material-ui/core/MenuItem";
-import FormHelperText from "@material-ui/core/FormHelperText";
 import FormControl from "@material-ui/core/FormControl";
 import Select from "@material-ui/core/Select";
+
+import Dialog from '@material-ui/core/Dialog';
+import DialogActions from '@material-ui/core/DialogActions'
+import DialogTitle from '@material-ui/core/DialogTitle';
 
 import { auth, db } from "./firebase";
 
@@ -29,6 +32,7 @@ export function App(props) {
   const [tasks, setTasks] = useState([]);
   const [new_task, setNewTask] = useState("");
   const [new_priority, setPriority] = useState("");
+  const [open, setOpen] = useState(false);
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged(u => {
@@ -108,6 +112,7 @@ export function App(props) {
       .collection("tasks")
       .doc(task_id)
       .delete();
+      handleClose()
   };
   const handleCheckTask = (checked, task_id) => {
     db.collection("users")
@@ -124,11 +129,35 @@ export function App(props) {
       .update({ priority: priority });
   };
 
+  const handleComplete = (checked, task_id) => {
+    if (checked === 1) {
+      return "Complete"
+    }
+    else {
+      return "Incomplete"
+    }
+  }
+  const handleBackDrop = () => {
+    setOpen(false);
+  };
+  const handleToggle = () => {
+    setOpen(!open);
+  };
+
+  const handleClickOpen = () => {
+    setOpen(true);
+  };
+
+  const handleClose = () => {
+    setOpen(false);
+  };
+
   if (!user) {
     return <div />;
   }
 
   return (
+
     <div>
       <AppBar position="static" color="primary">
         <Toolbar style={{ display: "flex" }}>
@@ -160,25 +189,22 @@ export function App(props) {
                 setNewTask(e.target.value);
               }}
             />
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={handleAddTask}
-              onKeyDown={handleEnterPressed}
-            >
-              ADD
-            </Button>
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={handleAddTask}
+                onKeyDown={handleEnterPressed}
+              >
+                ADD
+              </Button>
           </div>
 
-          <List style={{ MarginTop: 30 }}>
+            <List style={{ MarginTop: 30 }} subheader={<li />}>
             {" "}
             Incomplete Tasks
             {tasks.map(value => {
-              console.log(value);
-              const labelId = `checkbox-list-label-${value}`;
-
               return (
-                <ListItem key={value.id}>
+                <ListItem key={value.id} disabled = {false}>
                   <ListItemIcon>
                     <Checkbox
                       edge="start"
@@ -203,19 +229,40 @@ export function App(props) {
                         <MenuItem value="High">High</MenuItem>
                       </Select>
                     </FormControl>
-
-                    <IconButton
-                      onClick={() => {
-                        handleDeleteTask(value.id);
-                      }}
+                    
+                    <IconButton onClick = {handleClickOpen}
                     >
                       <DeleteIcon />
                     </IconButton>
+      <div>
+      <Dialog
+        open={open}
+        onClose={handleClose}
+        aria-labelledby="alert-dialog-title"
+        aria-describedby="alert-dialog-description"
+      >
+        <DialogTitle id="alert-dialog-title">{"Are you sure you want to delete this task?"}</DialogTitle>
+        <DialogActions>
+          <Button  
+          onClick={handleClose}
+           color="primary">
+            Cancel
+          </Button>
+          <Button 
+            onClick={() => {handleDeleteTask(value.id);}} 
+            color="primary" autoFocus>
+            Delete
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </div>
                   </ListItemSecondaryAction>
                 </ListItem>
               );
             })}
           </List>
+
+
         </Paper>
       </div>
     </div>
