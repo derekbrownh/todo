@@ -31,7 +31,7 @@ export function App(props) {
   const [user, setUser] = useState(null);
   const [tasks, setTasks] = useState([]);
   const [new_task, setNewTask] = useState("");
-  const [new_priority, setPriority] = useState("");
+  // const [new_priority, setPriority] = useState("");
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
@@ -102,7 +102,7 @@ export function App(props) {
       .add({ text: new_task, checked: false, priority: null })
       .then(() => {
         setNewTask("");
-        setPriority("");
+        // setPriority("");
       });
   };
 
@@ -128,22 +128,6 @@ export function App(props) {
       .doc(task_id)
       .update({ priority: priority });
   };
-
-  const handleComplete = (checked, task_id) => {
-    if (checked === 1) {
-      return "Complete"
-    }
-    else {
-      return "Incomplete"
-    }
-  }
-  const handleBackDrop = () => {
-    setOpen(false);
-  };
-  const handleToggle = () => {
-    setOpen(!open);
-  };
-
   const handleClickOpen = () => {
     setOpen(true);
   };
@@ -152,6 +136,16 @@ export function App(props) {
     setOpen(false);
   };
 
+const countarray = (arrayToCount, boolval) => {
+  var count = 0;
+  for(var i = 0; i < arrayToCount.length; ++i){
+    if(arrayToCount[i] === boolval)
+        count++;
+  }
+  if(count > 0){
+    return true
+  }
+}
   if (!user) {
     return <div />;
   }
@@ -176,6 +170,7 @@ export function App(props) {
           </Button>
         </Toolbar>
       </AppBar>
+      
       <div style={{ display: "flex", justifyContent: "center", marginTop: 30 }}>
         <Paper style={{ width: 700, padding: 30 }}>
           <Typography variant="h6">To Do List</Typography>
@@ -189,20 +184,86 @@ export function App(props) {
                 setNewTask(e.target.value);
               }}
             />
-              <Button
-                variant="contained"
-                color="primary"
-                onClick={handleAddTask}
-                onKeyDown={handleEnterPressed}
-              >
+              <Button variant="contained" color="primary" onClick={handleAddTask} onKeyDown={handleEnterPressed} disabled = {new_task === ""}>
                 ADD
               </Button>
           </div>
 
             <List style={{ MarginTop: 30 }} subheader={<li />}>
+            {countarray(tasks.checked,false) && "Incomplete Tasks"}
+            {tasks
+            .filter(value =>
+              value.checked === false
+            )
+            .map(value => {
+              return (
+                <ListItem key={value.id} disabled = {false}>
+                  <ListItemIcon>
+                    <Checkbox
+                      edge="start"
+                      checked={value.checked}
+                      onChange={e => {
+                        handleCheckTask(e.target.checked, value.id);
+                      }}
+                    />
+                  </ListItemIcon>
+                  <ListItemText primary={value.text} />
+                  <ListItemSecondaryAction>
+                    <FormControl style={{ width: 90 }}>
+                      <InputLabel shrink = {value.priority !== null}>Priority</InputLabel>
+                      <Select
+                        value={value.priority}
+                        onChange={e => {
+                          handleNewPriority(e.target.value, value.id);
+                        }}
+                      >
+                        <MenuItem value= {1}>Low</MenuItem>
+                        <MenuItem value= {2}>Mid</MenuItem>
+                        <MenuItem value= {3}>High</MenuItem>
+                      </Select>
+                    </FormControl>
+                    
+                    <IconButton onClick = {handleClickOpen}
+                    >
+                      <DeleteIcon />
+                    </IconButton>
+      <div>
+      <Dialog
+        open={open}
+        onClose={handleClose}
+      >
+        <DialogTitle>{"Are you sure you want to delete this task?"}</DialogTitle>
+        <DialogActions>
+          <Button  
+          onClick={handleClose}
+           color="primary">
+            Cancel
+          </Button>
+          <Button 
+            onClick={() => {handleDeleteTask(value.id);}} 
+            color="primary" autoFocus>
+            Delete
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </div>
+                  </ListItemSecondaryAction>
+                </ListItem>
+              );
+            })}
+          </List>
+
+
+
+          <List style={{ MarginTop: 30 }} subheader={<li />}>
             {" "}
-            Incomplete Tasks
-            {tasks.map(value => {
+            Complete Tasks
+            {tasks
+            .filter(value =>
+              value.checked === true
+
+            )
+            .map(value => {
               return (
                 <ListItem key={value.id} disabled = {false}>
                   <ListItemIcon>
@@ -224,9 +285,9 @@ export function App(props) {
                           handleNewPriority(e.target.value, value.id);
                         }}
                       >
-                        <MenuItem value="Low">Low</MenuItem>
-                        <MenuItem value="Mid">Mid</MenuItem>
-                        <MenuItem value="High">High</MenuItem>
+                        <MenuItem value={1}>Low</MenuItem>
+                        <MenuItem value={2}>Mid</MenuItem>
+                        <MenuItem value={3}>High</MenuItem>
                       </Select>
                     </FormControl>
                     
@@ -261,7 +322,6 @@ export function App(props) {
               );
             })}
           </List>
-
 
         </Paper>
       </div>
