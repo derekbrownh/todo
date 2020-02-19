@@ -136,16 +136,6 @@ export function App(props) {
     setOpen(false);
   };
 
-const countarray = (arrayToCount, boolval) => {
-  var count = 0;
-  for(var i = 0; i < arrayToCount.length; ++i){
-    if(arrayToCount[i] === boolval)
-        count++;
-  }
-  if(count > 0){
-    return true
-  }
-}
   if (!user) {
     return <div />;
   }
@@ -190,7 +180,7 @@ const countarray = (arrayToCount, boolval) => {
           </div>
 
             <List style={{ MarginTop: 30 }} subheader={<li />}>
-            {countarray(tasks.checked,false) && "Incomplete Tasks"}
+            {tasks.filter((value) => value.checked === false).length > 0 ? "Incomplete Tasks" : ""}
             {tasks
             .filter(value =>
               value.checked === false
@@ -229,7 +219,7 @@ const countarray = (arrayToCount, boolval) => {
                     </IconButton>
       <div>
       <Dialog
-        open={open}
+        open={value.id ? open : false}
         onClose={handleClose}
       >
         <DialogTitle>{"Are you sure you want to delete this task?"}</DialogTitle>
@@ -256,8 +246,8 @@ const countarray = (arrayToCount, boolval) => {
 
 
           <List style={{ MarginTop: 30 }} subheader={<li />}>
-            {" "}
-            Complete Tasks
+           
+            {tasks.filter((value) => value.checked === true).length > 0 ? "Complete Tasks" : ""}
             {tasks
             .filter(value =>
               value.checked === true
@@ -299,10 +289,8 @@ const countarray = (arrayToCount, boolval) => {
       <Dialog
         open={open}
         onClose={handleClose}
-        aria-labelledby="alert-dialog-title"
-        aria-describedby="alert-dialog-description"
       >
-        <DialogTitle id="alert-dialog-title">{"Are you sure you want to delete this task?"}</DialogTitle>
+        <DialogTitle>{"Are you sure you want to delete this task?"}</DialogTitle>
         <DialogActions>
           <Button  
           onClick={handleClose}
