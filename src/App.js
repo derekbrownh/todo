@@ -21,9 +21,9 @@ import MenuItem from "@material-ui/core/MenuItem";
 import FormControl from "@material-ui/core/FormControl";
 import Select from "@material-ui/core/Select";
 
-import Dialog from '@material-ui/core/Dialog';
-import DialogActions from '@material-ui/core/DialogActions'
-import DialogTitle from '@material-ui/core/DialogTitle';
+import Dialog from "@material-ui/core/Dialog";
+import DialogActions from "@material-ui/core/DialogActions";
+import DialogTitle from "@material-ui/core/DialogTitle";
 
 import { auth, db } from "./firebase";
 
@@ -33,6 +33,7 @@ export function App(props) {
   const [new_task, setNewTask] = useState("");
   // const [new_priority, setPriority] = useState("");
   const [open, setOpen] = useState(false);
+  const [taskID, setTaskID] = useState("");
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged(u => {
@@ -112,7 +113,7 @@ export function App(props) {
       .collection("tasks")
       .doc(task_id)
       .delete();
-      handleClose()
+    handleClose();
   };
   const handleCheckTask = (checked, task_id) => {
     db.collection("users")
@@ -128,7 +129,8 @@ export function App(props) {
       .doc(task_id)
       .update({ priority: priority });
   };
-  const handleClickOpen = () => {
+  const handleClickOpen = taskID => {
+    setTaskID(taskID);
     setOpen(true);
   };
 
@@ -141,7 +143,6 @@ export function App(props) {
   }
 
   return (
-
     <div>
       <AppBar position="static" color="primary">
         <Toolbar style={{ display: "flex" }}>
@@ -160,7 +161,7 @@ export function App(props) {
           </Button>
         </Toolbar>
       </AppBar>
-      
+
       <div style={{ display: "flex", justifyContent: "center", marginTop: 30 }}>
         <Paper style={{ width: 700, padding: 30 }}>
           <Typography variant="h6">To Do List</Typography>
@@ -174,145 +175,133 @@ export function App(props) {
                 setNewTask(e.target.value);
               }}
             />
-              <Button variant="contained" color="primary" onClick={handleAddTask} onKeyDown={handleEnterPressed} disabled = {new_task === ""}>
-                ADD
-              </Button>
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={handleAddTask}
+              onKeyDown={handleEnterPressed}
+              disabled={new_task === ""}
+            >
+              ADD
+            </Button>
           </div>
 
-            <List style={{ MarginTop: 30 }} subheader={<li />}>
-            {tasks.filter((value) => value.checked === false).length > 0 ? "Incomplete Tasks" : ""}
+          <List style={{ MarginTop: 30 }} subheader={<li />}>
+            {tasks.filter(value => value.checked === false).length > 0
+              ? "Incomplete Tasks"
+              : ""}
             {tasks
-            .filter(value =>
-              value.checked === false
-            )
-            .map(value => {
-              return (
-                <ListItem key={value.id} disabled = {false}>
-                  <ListItemIcon>
-                    <Checkbox
-                      edge="start"
-                      checked={value.checked}
-                      onChange={e => {
-                        handleCheckTask(e.target.checked, value.id);
-                      }}
-                    />
-                  </ListItemIcon>
-                  <ListItemText primary={value.text} />
-                  <ListItemSecondaryAction>
-                    <FormControl style={{ width: 90 }}>
-                      <InputLabel shrink = {value.priority !== null}>Priority</InputLabel>
-                      <Select
-                        value={value.priority}
+              .filter(value => value.checked === false)
+              .map(value => {
+                return (
+                  <ListItem key={value.id} disabled={false}>
+                    <ListItemIcon>
+                      <Checkbox
+                        edge="start"
+                        checked={value.checked}
                         onChange={e => {
-                          handleNewPriority(e.target.value, value.id);
+                          handleCheckTask(e.target.checked, value.id);
+                        }}
+                      />
+                    </ListItemIcon>
+                    <ListItemText primary={value.text} />
+                    <ListItemSecondaryAction>
+                      <FormControl style={{ width: 90 }}>
+                        <InputLabel shrink={value.priority !== null}>
+                          Priority
+                        </InputLabel>
+                        <Select
+                          value={value.priority}
+                          onChange={e => {
+                            handleNewPriority(e.target.value, value.id);
+                          }}
+                        >
+                          <MenuItem value={1}>Low</MenuItem>
+                          <MenuItem value={2}>Mid</MenuItem>
+                          <MenuItem value={3}>High</MenuItem>
+                        </Select>
+                      </FormControl>
+
+                      <IconButton
+                        onClick={() => {
+                          handleClickOpen(value.id);
                         }}
                       >
-                        <MenuItem value= {1}>Low</MenuItem>
-                        <MenuItem value= {2}>Mid</MenuItem>
-                        <MenuItem value= {3}>High</MenuItem>
-                      </Select>
-                    </FormControl>
-                    
-                    <IconButton onClick = {handleClickOpen}
-                    >
-                      <DeleteIcon />
-                    </IconButton>
-      <div>
-      <Dialog
-        open={value.id ? open : false}
-        onClose={handleClose}
-      >
-        <DialogTitle>{"Are you sure you want to delete this task?"}</DialogTitle>
-        <DialogActions>
-          <Button  
-          onClick={handleClose}
-           color="primary">
-            Cancel
-          </Button>
-          <Button 
-            onClick={() => {handleDeleteTask(value.id);}} 
-            color="primary" autoFocus>
-            Delete
-          </Button>
-        </DialogActions>
-      </Dialog>
-    </div>
-                  </ListItemSecondaryAction>
-                </ListItem>
-              );
-            })}
+                        <DeleteIcon />
+                      </IconButton>
+                    </ListItemSecondaryAction>
+                  </ListItem>
+                );
+              })}
           </List>
-
-
 
           <List style={{ MarginTop: 30 }} subheader={<li />}>
-           
-            {tasks.filter((value) => value.checked === true).length > 0 ? "Complete Tasks" : ""}
+            {tasks.filter(value => value.checked === true).length > 0
+              ? "Complete Tasks"
+              : ""}
             {tasks
-            .filter(value =>
-              value.checked === true
-
-            )
-            .map(value => {
-              return (
-                <ListItem key={value.id} disabled = {false}>
-                  <ListItemIcon>
-                    <Checkbox
-                      edge="start"
-                      checked={value.checked}
-                      onChange={e => {
-                        handleCheckTask(e.target.checked, value.id);
-                      }}
-                    />
-                  </ListItemIcon>
-                  <ListItemText primary={value.text} />
-                  <ListItemSecondaryAction>
-                    <FormControl style={{ width: 90 }}>
-                      <InputLabel>Priority</InputLabel>
-                      <Select
-                        value={value.priority}
+              .filter(value => value.checked === true)
+              .map(value => {
+                return (
+                  <ListItem key={value.id} disabled={false}>
+                    <ListItemIcon>
+                      <Checkbox
+                        edge="start"
+                        checked={value.checked}
                         onChange={e => {
-                          handleNewPriority(e.target.value, value.id);
+                          handleCheckTask(e.target.checked, value.id);
+                        }}
+                      />
+                    </ListItemIcon>
+                    <ListItemText primary={value.text} />
+                    <ListItemSecondaryAction>
+                      <FormControl style={{ width: 90 }}>
+                        <InputLabel>Priority</InputLabel>
+                        <Select
+                          value={value.priority}
+                          onChange={e => {
+                            handleNewPriority(e.target.value, value.id);
+                          }}
+                        >
+                          <MenuItem value={1}>Low</MenuItem>
+                          <MenuItem value={2}>Mid</MenuItem>
+                          <MenuItem value={3}>High</MenuItem>
+                        </Select>
+                      </FormControl>
+
+                      <IconButton
+                        onClick={() => {
+                          handleClickOpen(value.id);
                         }}
                       >
-                        <MenuItem value={1}>Low</MenuItem>
-                        <MenuItem value={2}>Mid</MenuItem>
-                        <MenuItem value={3}>High</MenuItem>
-                      </Select>
-                    </FormControl>
-                    
-                    <IconButton onClick = {handleClickOpen}
-                    >
-                      <DeleteIcon />
-                    </IconButton>
-      <div>
-      <Dialog
-        open={open}
-        onClose={handleClose}
-      >
-        <DialogTitle>{"Are you sure you want to delete this task?"}</DialogTitle>
+                        <DeleteIcon />
+                      </IconButton>
+                    </ListItemSecondaryAction>
+                  </ListItem>
+                );
+              })}
+          </List>
+        </Paper>
+      </div>
+      <Dialog open={open} onClose={handleClose}>
+        <DialogTitle>
+          {"Are you sure you want to delete this task?"}
+        </DialogTitle>
         <DialogActions>
-          <Button  
-          onClick={handleClose}
-           color="primary">
+          <Button onClick={handleClose} color="primary">
             Cancel
           </Button>
-          <Button 
-            onClick={() => {handleDeleteTask(value.id);}} 
-            color="primary" autoFocus>
+          <Button
+            onClick={() => {
+              handleDeleteTask(taskID);
+            }}
+            color="primary"
+            autoFocus
+          >
             Delete
           </Button>
         </DialogActions>
       </Dialog>
-    </div>
-                  </ListItemSecondaryAction>
-                </ListItem>
-              );
-            })}
-          </List>
-
-        </Paper>
-      </div>
     </div>
   );
 }
