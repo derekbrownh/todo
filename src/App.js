@@ -179,7 +179,6 @@ export function App(props) {
               variant="contained"
               color="primary"
               onClick={handleAddTask}
-              onKeyDown={handleEnterPressed}
               disabled={new_task === ""}
             >
               ADD
