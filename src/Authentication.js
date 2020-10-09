@@ -93,7 +93,7 @@ export function SignUp(props) {
       if (u) {
         props.history.push("/app");
       }
-      // do something
+      // do somethings
     });
 
     return unsubscribe;
